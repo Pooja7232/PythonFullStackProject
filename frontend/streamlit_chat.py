@@ -1,8 +1,9 @@
-# streamlit_chat.py
-
 import streamlit as st
 import asyncio
 import websockets
+import nest_asyncio
+
+nest_asyncio.apply()
 
 st.title("Chat Application")
 
@@ -19,11 +20,11 @@ async def ws_send_receive(uri, msg):
 if username:
     user_msg = st.text_input("Your message:", key="msg_input")
     if st.button("Send") and user_msg:
-        uri = f"ws://127.0.0.1:8000/ws/{username}"
+        uri = f"wss://my-deployed-backend-url/ws/{username}"  # <- Update this
         try:
-            # send and optionally receive
             resp = asyncio.run(ws_send_receive(uri, user_msg))
             st.session_state.messages.append(f"{username}: {user_msg}")
+            st.session_state.messages.append(f"Server: {resp}")
         except Exception as e:
             st.error("Connection failed: " + str(e))
 
