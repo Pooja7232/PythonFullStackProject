@@ -1,14 +1,20 @@
-messages=[]
-users=set()
-def save_message(username:str,message:str):
-    entry={"user":username,"message":message}
-    messages.append(entry)
-    return entry
-def get_messages():
-    return messages[-20:]
-def add_user(username:str):
-    users.add(username)
-def remove_user(username:str):
-    users.discard(username)
+from supabase import create_client, Client
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+def add_user(username: str, email: str):
+    response = supabase.table("users").insert(
+        {"username": username, "email": email}
+    ).execute()
+    return response.data
+
 def get_users():
-    return list(users)
+    response = supabase.table("users").select("*").execute()
+    return response.data

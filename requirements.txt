@@ -1,7 +1,6 @@
-streamlit>=1.29
-fastapi>=0.104
-uvicorn>=0.24
-websockets>=10
-python-dotenv>=1.0
-supabase>=2.0.2
-asyncio
+fastapi
+uvicorn
+streamlit
+requests
+python-dotenv
+supabase

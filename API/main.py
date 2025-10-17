@@ -1,27 +1,25 @@
-# api/main.py
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from src.logic import ConnectionManager
-from src import db
-app=FastAPI()
-manager=ConnectionManager()
-@app.get("/")
-async def home():
-    return {"message":"Chat server is running 🚀"}
-@app.get("/messages")
-async def get_messages():
-    return db.get_messages()
-@app.get("/users")
-async def get_users():
-    return db.get_users()
-@app.websocket("/ws/{username}")
-async def websocket_endpoint(websocket:WebSocket,username:str):
-    await manager.connect(websocket,username)
-    await manager.broadcast(f"📢{username}joined the chat","System")
-    try:
-        while True:
-            data=await websocket.receive_text()
-            db.save_message(username,data)
-            await manager.broadcast(data,username)
-    except WebSocketDisconnect:
-        manager.disconnect(websocket,username)
-        await manager.broadcast(f"❌{username}left the chat","System")
+from fastapi import FastAPI, Form
+from supabase import create_client
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+app = FastAPI()
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+@app.post("/chat/")
+async def chat(username: str = Form(...), message: str = Form(...)):
+    # Insert username and message into 'chatapp' table
+    response = supabase.table("chatapp").insert(
+        {"username": username, "message": message}
+    ).execute()
+
+    if response.status_code != 201:
+        return {"status": "error", "message": "Failed to save message"}
+
+    # Respond to the user (could be extended to AI response)
+    return {"status": "success", "response": f"Received message from {username}"}
